@@ -1,0 +1,62 @@
+import csv
+import nltk
+import re
+from collections import Counter
+from nltk.util import ngrams
+from nltk.corpus import stopwords
+
+# helper function to load file and clean up text
+
+textToProcess = 'path/to/file'
+
+def textbuilder(input):
+    stopwords = nltk.corpus.stopwords.words('english')
+    stopwords.extend(["i", "I"])
+    text = ""
+    reader = csv.reader(open(input))
+    for row in reader:
+        for x in row:
+            text = text + " " + x
+    text = re.sub(r'[^\w\s]', '', text)
+    text = ' '.join([w.lower() for w in text.split() if w not in stopwords])
+    return text
+    
+# helper function to build properly formatted rows for output CSV
+
+def rowbuilder(x, n):
+    row = []
+    for y in range(2*n):
+        row.append('')
+    
+    for y in x:
+        row[2*(len(x[0])-1)] = x[0]
+        row[2*(len(x[0])-1)+1] = x[1]
+
+    return row
+    
+# finds frequency of words and phrases.
+
+def WordsAndPhrases(input, n, cutoff=0):
+    fields = []
+    bagOfGrams = []
+
+    tokens = nltk.tokenize.word_tokenize(textbuilder(input))
+
+    # ngrams and their frequencies appended to bagOfGrams
+    for x in range(1,n+1):
+        fields.extend([str(x) + '-grams', str(x)+'-gram count'])
+        thegrams = ngrams(tokens, x)
+        bagOfGrams.extend(sorted(nltk.FreqDist(thegrams).items(), key=lambda tup: tup[1], reverse=True))
+
+    # saves data to CSV
+
+    with open('wordsnphrases.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+        
+        for x in bagOfGrams:
+
+            # Use this to modify how we filter out low-frequency results for n-grams of n > 1.
+            # The exact formula is somewhat arbitrary; feel free to fiddle with it. 
+            if x[1] * len(x[0])^4 > cutoff:
+                writer.writerow(rowbuilder(x,n))
