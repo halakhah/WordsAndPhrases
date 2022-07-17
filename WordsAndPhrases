@@ -5,6 +5,8 @@ from collections import Counter
 from nltk.util import ngrams
 from nltk.corpus import stopwords
 
+# Written to do cool stuff at Voiceitt
+
 # helper function to load file and clean up text
 
 textToProcess = 'path/to/file'
